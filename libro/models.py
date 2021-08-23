@@ -1,8 +1,5 @@
 from django.db import models
 
-<<<<<<< Updated upstream
-# Create your models here.
-=======
 
 # Create your models here.
 
@@ -39,4 +36,3 @@ class Libro(models.Model):
 
     def __str__(self):
         return self.title
->>>>>>> Stashed changes
