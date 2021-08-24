@@ -25,7 +25,7 @@ class Categoria(models.Model):
 
 
 class Libro(models.Model):
-    title = models.CharField(max_length=200, verbose_name='Titulo')
+    title = models.CharField(max_length=200, verbose_name='Titulo', unique=True)
     subtitle = models.CharField(max_length=200, verbose_name='Subtitulo')
     year_published = models.CharField(max_length=4, verbose_name='Fecha de publicación')
     description = models.TextField(verbose_name='Descripción')
