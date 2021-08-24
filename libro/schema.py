@@ -2,6 +2,9 @@ from graphene import Schema, ObjectType, InputObjectType, List, Field, String, M
 from graphene_django import DjangoObjectType
 
 from .models import Editor, Libro, Autor, Categoria
+from .schema_auxiliars import SchemaAuxiliarObj
+
+from django.db import IntegrityError
 
 
 # Create your types here.
@@ -34,22 +37,10 @@ class LibroType(DjangoObjectType):
 
 class Query(ObjectType):
 
-    editores = List(EditorType)
     libros = List(LibroType, libro_title=String())
-    autores = List(AutorType)
-    categorias = List(CategoriaType)
-
-    def resolve_editores(self, info, **kwargs):
-        return Editor.objects.all()
 
     def resolve_libros(self, info, libro_title):
         return Libro.objects.filter(title__icontains=libro_title)
-    
-    def resolve_autores(self, info, **kwargs):
-        return Autor.objects.all()
-
-    def resolve_categorias(self, info, **kwargs):
-        return Categoria.objects.all()
 
 
 # Create your mutations here.
@@ -91,21 +82,23 @@ class CreateLibro(Mutation):
 
     @staticmethod
     def mutate(root, info, libro_data=None):
-        print(libro_data)
-        editor_instance = Editor.objects.create(name=libro_data.editor.name)
-        libro_instance = Libro.objects.create(
-            title=libro_data.title,
-            subtitle=libro_data.subtitle,
-            editor=editor_instance,
-            year_published=libro_data.year_published,
-            description=libro_data.description,
-            image=libro_data.image,
+        editor_instance = SchemaAuxiliarObj.GetOrCreate(Editor, libro_data.editor.name)
+        try:
+            libro_instance = Libro.objects.create(
+                title=libro_data.title,
+                subtitle=libro_data.subtitle,
+                editor=editor_instance,
+                year_published=libro_data.year_published,
+                description=libro_data.description,
+                image=libro_data.image
             )
+        except IntegrityError:
+            raise Exception(f'Ya existe un libro con el título "{libro_data.title}".')
         for autor in libro_data.autores:
-            autor_instance = Autor.objects.create(name=autor.name)
+            autor_instance = SchemaAuxiliarObj.GetOrCreate(Autor, autor.name)
             libro_instance.autor.add(autor_instance)
         for categoria in libro_data.categorias:
-            categoria_instance = Categoria.objects.create(name=categoria.name)
+            categoria_instance = SchemaAuxiliarObj.GetOrCreate(Categoria, categoria.name)
             libro_instance.categoria.add(categoria_instance)
         return CreateLibro(libro=libro_instance)
 
