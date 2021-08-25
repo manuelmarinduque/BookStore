@@ -19,16 +19,15 @@ class SchemaAuxiliar:
 
     def __LibrosFormatoBD(self, libros_google):
         for libro in libros_google:
-            print(type(libro))
             datos_libro = {
                 'title': libro['volumeInfo']['title'],
                 'subtitle': libro['volumeInfo'].get('subtitle', ''),
-                'editor': {'name': libro['volumeInfo']['authors'][0]},
-                'yearPublished': libro['volumeInfo']['publishedDate'].split('-')[0],
-                'description': libro['volumeInfo']['description'],
-                'image': libro['volumeInfo']['imageLinks']['thumbnail'],
-                'autores': self.__FormatoListaObjetos(libro['volumeInfo']['authors']),
-                'categorias': self.__FormatoListaObjetos(libro['volumeInfo']['categories'])
+                'editor': {'name': libro['volumeInfo'].get('authors', ['no_definido'])[0]},
+                'yearPublished': libro['volumeInfo'].get('publishedDate', '').split('-')[0],
+                'description': libro['volumeInfo'].get('description', ''),
+                'image': libro['volumeInfo'].get('imageLinks', {}).get('thumbnail', ''),
+                'autores': self.__FormatoListaObjetos(libro['volumeInfo'].get('authors', ['no_definido'])),
+                'categorias': self.__FormatoListaObjetos(libro['volumeInfo'].get('categories', ['no_definido']))
             }
             yield datos_libro
     
@@ -46,23 +45,26 @@ class SchemaAuxiliar:
             self.CrearLibro(libro)
     
     def CrearLibro(self, libro):
-        instancia_editor = self.__ObtenerOCrearInstancia(Editor, name=libro['editor']['name'])
-        datos_libro = {
-            'title':libro['title'],
-            'subtitle':libro['subtitle'],
-            'editor':instancia_editor,
-            'year_published':libro['year_published'],
-            'description':libro['description'],
-            'image':libro['image']
-        }
-        instancia_libro = self.__ObtenerOCrearInstancia(Libro, **datos_libro)
-        for autor in libro.autores:
-            instancia_autor = self.__ObtenerOCrearInstancia(Autor, name=autor['name'])
-            instancia_libro.autor.add(instancia_autor)
-        for categoria in libro.categorias:
-            instancia_categoria = self.__ObtenerOCrearInstancia(Categoria, name=categoria['name'])
-            instancia_libro.categoria.add(instancia_categoria)
-        return instancia_libro
+        try:
+            instancia_editor = self.__ObtenerOCrearInstancia(Editor, name=libro['editor']['name'])
+            datos_libro = {
+                'title':libro['title'],
+                'subtitle':libro['subtitle'],
+                'editor':instancia_editor,
+                'year_published':libro['yearPublished'],
+                'description':libro['description'],
+                'image':libro['image']
+            }
+            instancia_libro = self.__ObtenerOCrearInstancia(Libro, **datos_libro)
+            for autor in libro['autores']:
+                instancia_autor = self.__ObtenerOCrearInstancia(Autor, name=autor['name'])
+                instancia_libro.autor.add(instancia_autor)
+            for categoria in libro['categorias']:
+                instancia_categoria = self.__ObtenerOCrearInstancia(Categoria, name=categoria['name'])
+                instancia_libro.categoria.add(instancia_categoria)
+            return instancia_libro
+        except Exception:
+            pass
 
     def ValidarEntrada(self, texto_entrada: str):
         if not len(texto_entrada.split(' ')) >= 2:
