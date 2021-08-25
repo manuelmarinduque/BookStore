@@ -42,7 +42,8 @@ class Query(ObjectType):
         libros = Libro.objects.filter(title__icontains=titulo_libro)
         if not len(libros):
             libros_google = SchemaAuxiliarObj.ObtenerLibrosDeGoogle(titulo_libro)
-            print(next(libros_google))
+            SchemaAuxiliarObj.CrearLibrosDeGoogle(libros_google)
+            libros = Libro.objects.filter(title__icontains=titulo_libro)
         return libros
 
 
