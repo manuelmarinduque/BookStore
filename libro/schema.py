@@ -4,10 +4,8 @@ from graphene_django import DjangoObjectType
 from .models import Editor, Libro, Autor, Categoria
 from .schema_auxiliars import SchemaAuxiliarObj
 
-from django.db import IntegrityError
 
-
-# Create your types here.
+# Definición de los tipos.
 
 class EditorType(DjangoObjectType):
     class Meta():
@@ -33,20 +31,24 @@ class LibroType(DjangoObjectType):
         fields = "__all__"
 
 
-# Create your queries here.
+# Definición de las consultas.
 
 class Query(ObjectType):
 
-    libros = List(LibroType, libro_title=String())
+    libros = List(LibroType, titulo_libro=String())
 
-    def resolve_libros(self, info, libro_title):
-        return Libro.objects.filter(title__icontains=libro_title)
+    def resolve_libros(self, info, titulo_libro: str):
+        SchemaAuxiliarObj.ValidarEntrada(titulo_libro)
+        libros = Libro.objects.filter(title__icontains=titulo_libro)
+        if not len(libros):
+            libros_google = SchemaAuxiliarObj.ObtenerLibrosDeGoogle(titulo_libro)
+            print(next(libros_google))
+        return libros
 
 
-# Create your mutations here.
+# Definición de las mutaciones.
 
-
-# About inputs.
+# Definición de las entradas.
 
 class EditorInput(InputObjectType):
     name = String()
@@ -71,42 +73,41 @@ class LibroInput(InputObjectType):
     categorias = List(CategoriaInput)
 
 
-# About creations.
+# Definición de las creaciones.
 
-
-class CreateLibro(Mutation):
+class CrearLibro(Mutation):
     class Arguments:
-        libro_data = LibroInput(required=True)
+        datos_libro = LibroInput(required=True)
 
     libro = Field(LibroType)
 
     @staticmethod
-    def mutate(root, info, libro_data=None):
-        editor_instance = SchemaAuxiliarObj.GetOrCreate(Editor, libro_data.editor.name)
-        try:
-            libro_instance = Libro.objects.create(
-                title=libro_data.title,
-                subtitle=libro_data.subtitle,
-                editor=editor_instance,
-                year_published=libro_data.year_published,
-                description=libro_data.description,
-                image=libro_data.image
-            )
-        except IntegrityError:
-            raise Exception(f'Ya existe un libro con el título "{libro_data.title}".')
-        for autor in libro_data.autores:
-            autor_instance = SchemaAuxiliarObj.GetOrCreate(Autor, autor.name)
-            libro_instance.autor.add(autor_instance)
-        for categoria in libro_data.categorias:
-            categoria_instance = SchemaAuxiliarObj.GetOrCreate(Categoria, categoria.name)
-            libro_instance.categoria.add(categoria_instance)
-        return CreateLibro(libro=libro_instance)
+    def mutate(self, info, datos_libro=None):
+        instancia_libro = SchemaAuxiliarObj.CrearLibro(datos_libro)
+        return CrearLibro(libro=instancia_libro)
 
 
-# 'Mutation' class.
+# Definición de las eliminaciones.
+
+class EliminarLibro(Mutation):
+    class Arguments:
+        titulo = String()
+
+    libro = Field(LibroType)
+
+    @staticmethod
+    def mutate(root, info, titulo):
+        libros = Libro.objects.filter(title__icontains=titulo)
+        for libro in libros:
+            libro.delete()
+        return None
+
+
+# Definición de la clase Mutation.
 
 class Mutation(ObjectType):
-    create_libro = CreateLibro.Field()
+    crear_libro = CrearLibro.Field()
+    eliminar_libro = EliminarLibro.Field()
 
 
 # Define 'schema' object.
