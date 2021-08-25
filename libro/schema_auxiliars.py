@@ -11,7 +11,7 @@ class SchemaAuxiliar:
         return instancia
 
     def ObtenerLibrosDeGoogle(self, nombre_libro: str):
-        recurso: str = f'https://www.googleapis.com/books/v1/volumes?q={nombre_libro}'
+        recurso: str = f'https://www.googleapis.com/books/v1/volumes?q={nombre_libro}&langRestrict=es&maxResults=30&orderBy=relevance&printType=BOOKS&fields=items.volumeInfo.title%2C%20items.volumeInfo.subtitle%2C%20items.volumeInfo.authors%2C%20items.volumeInfo.publishedDate%2C%20items.volumeInfo.description%2C%20items.volumeInfo.categories%2C%20items.volumeInfo.imageLinks.thumbnail'
         datos_peticion = get(recurso).json()
         libros_google = datos_peticion['items']
         libros_google_formato_db = self.__LibrosFormatoBD(libros_google)
@@ -22,7 +22,7 @@ class SchemaAuxiliar:
             print(type(libro))
             datos_libro = {
                 'title': libro['volumeInfo']['title'],
-                'subtitle': libro['volumeInfo']['subtitle'],
+                'subtitle': libro['volumeInfo'].get('subtitle', ''),
                 'editor': {'name': libro['volumeInfo']['authors'][0]},
                 'yearPublished': libro['volumeInfo']['publishedDate'].split('-')[0],
                 'description': libro['volumeInfo']['description'],
