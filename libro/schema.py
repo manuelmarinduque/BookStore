@@ -49,7 +49,7 @@ class Query(ObjectType):
     libros = List(LibroType, **filtro_entrada)
 
     def resolve_libros(self, info, **kwargs):
-        # SchemaAuxiliarObj.ValidarEntrada(kwargs['titulo'])
+        if len(kwargs['titulo']): SchemaAuxiliarObj.ValidarEntrada(kwargs['titulo'])
         filtro = SchemaAuxiliarObj.GetFiltro(kwargs)
         libros = Libro.objects.filter(**filtro)
         if not len(libros):
