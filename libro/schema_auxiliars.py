@@ -70,4 +70,16 @@ class SchemaAuxiliar:
         if not len(texto_entrada.split(' ')) >= 2:
             raise Exception(f'El título del libro a buscar es muy corto.')
 
+    def GetFiltro(self, valores_busqueda):
+        filtro = {key:value for key, value in valores_busqueda.items() if len(value)>1}
+        if 'titulo' in filtro.keys(): filtro['title__icontains'] = filtro.pop('titulo') 
+        if 'subtitulo' in filtro.keys(): filtro['subtitle__icontains'] = filtro.pop('subtitulo') 
+        if 'anio' in filtro.keys(): filtro['year_published'] = filtro.pop('anio')
+        if 'description' in filtro.keys(): filtro['description__icontains'] = filtro.pop('description')
+        if 'editor' in filtro.keys(): filtro['editor__name__icontains'] = filtro.pop('editor')
+        if 'autor' in filtro.keys(): filtro['autor__name__icontains'] = filtro.pop('autor')
+        if 'categoria' in filtro.keys(): filtro['categoria__name__icontains'] = filtro.pop('categoria')
+        return filtro
+
+
 SchemaAuxiliarObj = SchemaAuxiliar()

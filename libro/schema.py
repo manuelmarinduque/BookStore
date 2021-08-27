@@ -1,5 +1,6 @@
-from graphene import Schema, ObjectType, InputObjectType, List, Field, String, Mutation
+from graphene import Schema, ObjectType, InputObjectType, List, Field, String, Mutation, ID
 from graphene_django import DjangoObjectType
+from django.db.models import Q
 
 from .models import Editor, Libro, Autor, Categoria
 from .schema_auxiliars import SchemaAuxiliarObj
@@ -35,15 +36,27 @@ class LibroType(DjangoObjectType):
 
 class Query(ObjectType):
 
-    libros = List(LibroType, titulo_libro=String())
+    filtro_entrada = {
+        'titulo':String(), 
+        'subtitulo':String(), 
+        'anio':String(),
+        'descripcion':String(), 
+        'editor':String(), 
+        'autor':String(), 
+        'categoria':String()
+    }
 
-    def resolve_libros(self, info, titulo_libro: str):
-        SchemaAuxiliarObj.ValidarEntrada(titulo_libro)
-        libros = Libro.objects.filter(title__icontains=titulo_libro)
+    libros = List(LibroType, **filtro_entrada)
+
+    def resolve_libros(self, info, **kwargs):
+        # SchemaAuxiliarObj.ValidarEntrada(kwargs['titulo'])
+        filtro = SchemaAuxiliarObj.GetFiltro(kwargs)
+        libros = Libro.objects.filter(**filtro)
         if not len(libros):
-            libros_google = SchemaAuxiliarObj.ObtenerLibrosDeGoogle(titulo_libro)
+            titulo = kwargs['titulo']
+            libros_google = SchemaAuxiliarObj.ObtenerLibrosDeGoogle(titulo)
             SchemaAuxiliarObj.CrearLibrosDeGoogle(libros_google)
-            libros = Libro.objects.filter(title__icontains=titulo_libro)
+            libros = Libro.objects.filter(title__icontains=titulo)
         return libros
 
 
