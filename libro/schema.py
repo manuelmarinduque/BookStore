@@ -56,7 +56,7 @@ class Query(ObjectType):
             titulo = kwargs['titulo']
             libros_google = SchemaAuxiliarObj.ObtenerLibrosDeGoogle(titulo)
             SchemaAuxiliarObj.CrearLibrosDeGoogle(libros_google)
-            libros = Libro.objects.filter(title__icontains=titulo)
+            libros = Libro.objects.filter(**filtro)
         return libros
 
 
