@@ -37,10 +37,12 @@ class LibroType(DjangoObjectType):
 class Query(ObjectType):
 
     filtro_entrada = {
+        'id':ID(),
         'titulo':String(), 
         'subtitulo':String(), 
         'anio':String(),
-        'descripcion':String(), 
+        'descripcion':String(),
+        'url':String(),
         'editor':String(), 
         'autor':String(), 
         'categoria':String()
@@ -49,13 +51,15 @@ class Query(ObjectType):
     libros = List(LibroType, **filtro_entrada)
 
     def resolve_libros(self, info, **kwargs):
-        if len(kwargs['titulo']): SchemaAuxiliarObj.ValidarEntrada(kwargs['titulo'])
         filtro = SchemaAuxiliarObj.GetFiltro(kwargs)
         libros = Libro.objects.filter(**filtro)
-        if not len(libros):
-            titulo = kwargs['titulo']
-            libros_google = SchemaAuxiliarObj.ObtenerLibrosDeGoogle(titulo)
-            SchemaAuxiliarObj.CrearLibrosDeGoogle(libros_google)
+        titulo = kwargs['titulo'] if 'titulo' in kwargs.keys() else ''
+        autor = kwargs['autor'] if 'autor' in kwargs.keys() else ''
+        categoria = kwargs['categoria'] if 'categoria' in kwargs.keys() else ''
+        if not libros and (titulo or autor or categoria):
+            if titulo: SchemaAuxiliarObj.ValidarEntrada(titulo)
+            libros_google = SchemaAuxiliarObj.BusquedaDeLibrosEnGoogle(title=titulo, author=autor, subject=categoria)
+            SchemaAuxiliarObj.CrearLibrosEnBD(libros_google)
             libros = Libro.objects.filter(**filtro)
         return libros
 
