@@ -1,13 +1,14 @@
 from os import name
 from requests import get
 from .models import Editor, Autor, Categoria, Libro
+from graphql import GraphQLError
 
 # Create your auxiliars here.
 
 class SchemaAuxiliar:
 
-    def __ObtenerOCrearInstancia(self, model, **kwargs):
-        instancia, _ = model.objects.get_or_create(**kwargs)
+    def __ObtenerOCrearInstancia(self, model, **datos):
+        instancia, _ = model.objects.get_or_create(**datos)
         return instancia
 
     def BusquedaDeLibrosEnGoogle(self, **kwargs):
@@ -77,7 +78,7 @@ class SchemaAuxiliar:
 
     def ValidarEntrada(self, texto_entrada: str):
         if not len(texto_entrada) >= 4:
-            raise Exception(f'El título del libro a buscar es muy corto.')
+            raise GraphQLError(f'El título del libro a buscar es muy corto.')
 
     def GetFiltro(self, valores_busqueda):
         filtro = {}
