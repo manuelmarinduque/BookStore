@@ -1,6 +1,5 @@
 from graphene import Schema, ObjectType, InputObjectType, List, Field, String, Mutation, ID
 from graphene_django import DjangoObjectType
-from django.db.models import Q
 
 from .models import Editor, Libro, Autor, Categoria
 from .schema_auxiliars import SchemaAuxiliarObj
