@@ -7,6 +7,12 @@ from graphql import GraphQLError
 
 class SchemaAuxiliar:
 
+    def ValidarInicioSesion(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            raise GraphQLError('Debes iniciar sesión para acceder a esta funcionalidad.')
+
+
     def __ObtenerOCrearInstancia(self, model, **datos):
         instancia, _ = model.objects.get_or_create(**datos)
         return instancia
@@ -30,12 +36,12 @@ class SchemaAuxiliar:
     def __LibrosFormatoBD(self, libros_google):
         for libro in libros_google:
             datos_libro = {
-                'title': libro['volumeInfo']['title'],
-                'subtitle': libro['volumeInfo'].get('subtitle', ''),
+                'titulo': libro['volumeInfo']['title'],
+                'subtitulo': libro['volumeInfo'].get('subtitle', ''),
                 'editor': {'name': libro['volumeInfo'].get('authors', ['no_definido'])[0]},
-                'yearPublished': libro['volumeInfo'].get('publishedDate', '').split('-')[0],
-                'description': libro['volumeInfo'].get('description', ''),
-                'image': libro['volumeInfo'].get('imageLinks', {}).get('thumbnail', ''),
+                'anio': libro['volumeInfo'].get('publishedDate', '').split('-')[0],
+                'descripcion': libro['volumeInfo'].get('description', ''),
+                'url': libro['volumeInfo'].get('imageLinks', {}).get('thumbnail', ''),
                 'autores': self.__FormatoListaObjetos(libro['volumeInfo'].get('authors', ['no_definido'])),
                 'categorias': self.__FormatoListaObjetos(libro['volumeInfo'].get('categories', ['no_definido']))
             }
@@ -58,12 +64,12 @@ class SchemaAuxiliar:
         try:
             instancia_editor = self.__ObtenerOCrearInstancia(Editor, name=libro['editor']['name'])
             datos_libro = {
-                'title':libro['title'],
-                'subtitle':libro['subtitle'],
+                'title':libro['titulo'],
+                'subtitle':libro['subtitulo'],
                 'editor':instancia_editor,
-                'year_published':libro['yearPublished'],
-                'description':libro['description'],
-                'image':libro['image']
+                'year_published':libro['anio'],
+                'description':libro['descripcion'],
+                'image':libro['url']
             }
             instancia_libro = self.__ObtenerOCrearInstancia(Libro, **datos_libro)
             for autor in libro['autores']:
