@@ -1,11 +1,10 @@
 from django.urls import path
 from graphene_django.views import GraphQLView
+from django.views.decorators.csrf import csrf_exempt
+
 
 # Create your urls here.
 
-
-app_name = 'libro'
-
 urlpatterns = [
-    path('', GraphQLView.as_view(graphiql=True), name='index')
+    path('', csrf_exempt(GraphQLView.as_view(graphiql=True)))
 ]
