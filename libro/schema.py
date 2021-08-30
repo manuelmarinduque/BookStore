@@ -61,6 +61,8 @@ class Query(ObjectType):
             if titulo: SchemaAuxiliarObj.ValidarEntrada(titulo)
             libros_google = SchemaAuxiliarObj.BusquedaDeLibrosEnGoogle(title=titulo, author=autor, subject=categoria, publisher=editor)
             SchemaAuxiliarObj.CrearLibrosEnBD(libros_google)
+            libros_openlibrary = SchemaAuxiliarObj.BusquedaDeLibrosEnOpenLibrary(title=titulo, author=autor, subject=categoria, publisher=editor)
+            SchemaAuxiliarObj.CrearLibrosEnBD(libros_openlibrary)
             libros = Libro.objects.filter(**filtro)
         return libros
 

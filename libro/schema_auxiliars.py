@@ -56,6 +56,7 @@ class SchemaAuxiliar:
         for elemento in lista:
             objeto['name'] = elemento
             lista_objetos.append(objeto)
+            objeto = {}
         return lista_objetos
 
     def CrearLibrosEnBD(self, libros):
@@ -99,6 +100,38 @@ class SchemaAuxiliar:
         if 'autor' in valores_busqueda.keys(): filtro['autor__name__icontains'] = valores_busqueda['autor']
         if 'categoria' in valores_busqueda.keys(): filtro['categoria__name__icontains'] = valores_busqueda['categoria']
         return filtro
+
+    def BusquedaDeLibrosEnOpenLibrary(self, **kwargs):
+        filtro_openlibrary = self.__GetFiltroOpenLibrary(**kwargs)
+        recurso: str = f'http://openlibrary.org/search.json?{filtro_openlibrary}languaje=spa'
+        datos_peticion = get(recurso).json()
+        libros_openlibrary = datos_peticion['docs']
+        if libros_openlibrary:
+            libros_openlibrary_formato_bd = self.__LibrosOpenLibraryFormatoBD(libros_openlibrary)
+            return libros_openlibrary_formato_bd
+        else:
+            return []
+
+    def __GetFiltroOpenLibrary(self, **atributos):
+        filtro_auxiliar = {key:value for key,value in atributos.items() if value}
+        filtro_openlibrary = ''
+        for key,value in filtro_auxiliar.items():
+            filtro_openlibrary += f'{key}={value}&'
+        return filtro_openlibrary
+
+    def __LibrosOpenLibraryFormatoBD(self, libros_openlibrary):
+        for libro in libros_openlibrary:
+            datos_libro = {
+                'titulo': libro['title'],
+                'editor': {'name': libro.get('publisher', ['no_definido'])[0]},
+                'anio': libro.get('first_publish_year', ''),
+                'autores': self.__FormatoListaObjetos(libro.get('author_name', ['no_definido'])),
+                'categorias': self.__FormatoListaObjetos(libro.get('subject', ['no_definido'])),
+                'subtitulo': '',
+                'descripcion': '',
+                'url': '',
+            }
+            yield datos_libro
 
 
 SchemaAuxiliarObj = SchemaAuxiliar()
