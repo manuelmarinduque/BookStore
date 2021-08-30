@@ -1,7 +1,8 @@
-from os import name
 from requests import get
-from .models import Editor, Autor, Categoria, Libro
 from graphql import GraphQLError
+
+from .models import Editor, Autor, Categoria, Libro
+
 
 # Create your auxiliars here.
 
@@ -12,7 +13,6 @@ class SchemaAuxiliar:
         if user.is_anonymous:
             raise GraphQLError('Debes iniciar sesión para acceder a esta funcionalidad.')
 
-
     def __ObtenerOCrearInstancia(self, model, **datos):
         instancia, _ = model.objects.get_or_create(**datos)
         return instancia
@@ -21,9 +21,12 @@ class SchemaAuxiliar:
         filtro_google = self.__GetFiltroGoogle(**kwargs)
         recurso: str = f'https://www.googleapis.com/books/v1/volumes?q={filtro_google}&filter=partial&langRestrict=es&maxResults=30&orderBy=relevance&printType=BOOKS&fields=items.volumeInfo.title%2C%20items.volumeInfo.subtitle%2C%20items.volumeInfo.authors%2C%20items.volumeInfo.publishedDate%2C%20items.volumeInfo.description%2C%20items.volumeInfo.categories%2C%20items.volumeInfo.publisher%2C%20items.volumeInfo.imageLinks.thumbnail'
         datos_peticion = get(recurso).json()
-        libros_google = datos_peticion['items']
-        libros_google_formato_db = self.__LibrosFormatoBD(libros_google)
-        return libros_google_formato_db
+        if datos_peticion:
+            libros_google = datos_peticion['items']
+            libros_google_formato_db = self.__LibrosFormatoBD(libros_google)
+            return libros_google_formato_db
+        else:
+            return []
 
     def __GetFiltroGoogle(self, **atributos):
         filtro_auxiliar_1 = {key:value for key,value in atributos.items() if value}
@@ -31,7 +34,6 @@ class SchemaAuxiliar:
         filtro_google = ''
         for key,value in filtro_auxiliar.items():
             filtro_google += f'{key}:{value}%20'
-        print(filtro_google)
         return filtro_google
 
     def __LibrosFormatoBD(self, libros_google):
@@ -55,7 +57,6 @@ class SchemaAuxiliar:
             objeto['name'] = elemento
             lista_objetos.append(objeto)
         return lista_objetos
-
 
     def CrearLibrosEnBD(self, libros):
         for libro in libros:
