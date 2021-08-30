@@ -19,7 +19,7 @@ class SchemaAuxiliar:
 
     def BusquedaDeLibrosEnGoogle(self, **kwargs):
         filtro_google = self.__GetFiltroGoogle(**kwargs)
-        recurso: str = f'https://www.googleapis.com/books/v1/volumes?q={filtro_google}&filter=partial&langRestrict=es&maxResults=30&orderBy=relevance&printType=BOOKS&fields=items.volumeInfo.title%2C%20items.volumeInfo.subtitle%2C%20items.volumeInfo.authors%2C%20items.volumeInfo.publishedDate%2C%20items.volumeInfo.description%2C%20items.volumeInfo.categories%2C%20items.volumeInfo.imageLinks.thumbnail'
+        recurso: str = f'https://www.googleapis.com/books/v1/volumes?q={filtro_google}&filter=partial&langRestrict=es&maxResults=30&orderBy=relevance&printType=BOOKS&fields=items.volumeInfo.title%2C%20items.volumeInfo.subtitle%2C%20items.volumeInfo.authors%2C%20items.volumeInfo.publishedDate%2C%20items.volumeInfo.description%2C%20items.volumeInfo.categories%2C%20items.volumeInfo.publisher%2C%20items.volumeInfo.imageLinks.thumbnail'
         datos_peticion = get(recurso).json()
         libros_google = datos_peticion['items']
         libros_google_formato_db = self.__LibrosFormatoBD(libros_google)
@@ -27,10 +27,11 @@ class SchemaAuxiliar:
 
     def __GetFiltroGoogle(self, **atributos):
         filtro_auxiliar_1 = {key:value for key,value in atributos.items() if value}
-        filtro_auxiliar = {f'in{key}':value if key=='title' or key=='author' else {key:value} for key,value in filtro_auxiliar_1.items()}
+        filtro_auxiliar = {f'in{key}':value if key=='title' or key=='author' or key=='publisher' else {key:value} for key,value in filtro_auxiliar_1.items()}
         filtro_google = ''
         for key,value in filtro_auxiliar.items():
             filtro_google += f'{key}:{value}%20'
+        print(filtro_google)
         return filtro_google
 
     def __LibrosFormatoBD(self, libros_google):
@@ -38,7 +39,7 @@ class SchemaAuxiliar:
             datos_libro = {
                 'titulo': libro['volumeInfo']['title'],
                 'subtitulo': libro['volumeInfo'].get('subtitle', ''),
-                'editor': {'name': libro['volumeInfo'].get('authors', ['no_definido'])[0]},
+                'editor': {'name': libro['volumeInfo']['publisher']},
                 'anio': libro['volumeInfo'].get('publishedDate', '').split('-')[0],
                 'descripcion': libro['volumeInfo'].get('description', ''),
                 'url': libro['volumeInfo'].get('imageLinks', {}).get('thumbnail', ''),

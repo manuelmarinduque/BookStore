@@ -56,9 +56,10 @@ class Query(ObjectType):
         titulo = kwargs['titulo'] if 'titulo' in kwargs.keys() else ''
         autor = kwargs['autor'] if 'autor' in kwargs.keys() else ''
         categoria = kwargs['categoria'] if 'categoria' in kwargs.keys() else ''
-        if not libros and (titulo or autor or categoria):
+        editor = kwargs['editor'] if 'editor' in kwargs.keys() else ''
+        if not libros and (titulo or autor or categoria or editor):
             if titulo: SchemaAuxiliarObj.ValidarEntrada(titulo)
-            libros_google = SchemaAuxiliarObj.BusquedaDeLibrosEnGoogle(title=titulo, author=autor, subject=categoria)
+            libros_google = SchemaAuxiliarObj.BusquedaDeLibrosEnGoogle(title=titulo, author=autor, subject=categoria, publisher=editor)
             SchemaAuxiliarObj.CrearLibrosEnBD(libros_google)
             libros = Libro.objects.filter(**filtro)
         return libros
