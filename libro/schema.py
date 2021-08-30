@@ -1,4 +1,4 @@
-from graphene import Schema, ObjectType, InputObjectType, List, Field, String, Mutation, ID
+from graphene import ObjectType, InputObjectType, List, Field, String, Mutation, ID
 from graphene_django import DjangoObjectType
 
 from .models import Editor, Libro, Autor, Categoria
@@ -50,6 +50,7 @@ class Query(ObjectType):
     libros = List(LibroType, **filtro_entrada)
 
     def resolve_libros(self, info, **kwargs):
+        SchemaAuxiliarObj.ValidarInicioSesion(info)
         filtro = SchemaAuxiliarObj.GetFiltro(kwargs)
         libros = Libro.objects.filter(**filtro)
         titulo = kwargs['titulo'] if 'titulo' in kwargs.keys() else ''
@@ -80,11 +81,11 @@ class CategoriaInput(InputObjectType):
 
 
 class LibroInput(InputObjectType):
-    title = String()
-    subtitle = String()
-    year_published = String()
-    description = String()
-    image = String()
+    titulo = String()
+    subtitulo = String()
+    anio = String()
+    descripcion = String()
+    url = String()
     editor = Field(EditorInput)
     autores = List(AutorInput)
     categorias = List(CategoriaInput)
@@ -100,6 +101,7 @@ class CrearLibro(Mutation):
 
     @staticmethod
     def mutate(self, info, datos_libro=None):
+        SchemaAuxiliarObj.ValidarInicioSesion(info)
         instancia_libro = SchemaAuxiliarObj.CrearLibro(datos_libro)
         return CrearLibro(libro=instancia_libro)
 
@@ -110,14 +112,15 @@ class EliminarLibro(Mutation):
     class Arguments:
         titulo = String()
 
-    libro = Field(LibroType)
+    libros = List(LibroType)
 
     @staticmethod
-    def mutate(root, info, titulo):
+    def mutate(self, info, titulo):
+        SchemaAuxiliarObj.ValidarInicioSesion(info)
         libros = Libro.objects.filter(title__icontains=titulo)
         for libro in libros:
             libro.delete()
-        return None
+        return EliminarLibro(libros=libros)
 
 
 # Definición de la clase Mutation.
@@ -125,8 +128,3 @@ class EliminarLibro(Mutation):
 class Mutation(ObjectType):
     crear_libro = CrearLibro.Field()
     eliminar_libro = EliminarLibro.Field()
-
-
-# Define 'schema' object.
-
-schema = Schema(query=Query, mutation=Mutation)
