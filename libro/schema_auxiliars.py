@@ -41,7 +41,7 @@ class SchemaAuxiliar:
             datos_libro = {
                 'titulo': libro['volumeInfo']['title'],
                 'subtitulo': libro['volumeInfo'].get('subtitle', ''),
-                'editor': {'name': libro['volumeInfo']['publisher']},
+                'editor': {'name': libro['volumeInfo'].get('publisher', ['no_definido'])},
                 'anio': libro['volumeInfo'].get('publishedDate', '').split('-')[0],
                 'descripcion': libro['volumeInfo'].get('description', ''),
                 'url': libro['volumeInfo'].get('imageLinks', {}).get('thumbnail', ''),
