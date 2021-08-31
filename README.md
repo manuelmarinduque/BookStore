@@ -22,7 +22,7 @@ Este proyecto consta de las siguientes carácteristicas:
 Endpoint único:
 
 ```
-/api/v1/book
+https://bookstoreappr5.herokuapp.com/api/v1/book
 ```
 
 1. Registro del usuario:
