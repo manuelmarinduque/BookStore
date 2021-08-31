@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-%@%g7!^=_fsmisj%!2g30^3(&im&ni^5tk6r2me4b5s=ay1w4!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://git.heroku.com/bookstorer5.git', 'localhost:8000']
+ALLOWED_HOSTS = ['https://git.heroku.com/bookstoreappr5.git', 'localhost:8000']
 
 
 # Application definition
